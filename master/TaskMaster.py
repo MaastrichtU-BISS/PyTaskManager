@@ -45,6 +45,17 @@ def getTaskResult(clientId, taskId):
     taskResult = dbDao.getTaskResult(taskId)
     return Response(json.dumps(taskResult), mimetype='application/json')
 
+@app.route('/client/<int:clientId>/task/<int:taskId>/result/output')
+def getTaskResultOutput(clientId, taskId):
+    taskResult = dbDao.getTaskResult(taskId)[0]
+    responseStr = str(taskResult["response"])
+    return Response(responseStr, mimetype="text/plain")
+
+@app.route('/client/<int:clientId>/task/<int:taskId>/result/log')
+def getTaskResultLog(clientId, taskId):
+    taskResult = dbDao.getTaskResult(taskId)[0]
+    return Response(str(taskResult["log"]), mimetype="text/plain")
+
 @app.route('/client/<int:clientId>/task/<int:taskId>/result/add', methods=["POST"])
 def addTaskResult(clientId, taskId):
     data = request.get_json()
