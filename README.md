@@ -43,11 +43,10 @@ At the central registry:
 
 At the (hospital) sites:
 
-1. Checkout this repository
-2. 
-2. Please adapt the config.json file to your site information, including the local URL to your internal SPARQL endpoint.
-3. Run the python script client/runScript.py (`python client/runScript.py`)
-4. **Optionally**: if you have a public IP address, you can also receive direct files (e.g. usefull if your site is a Trusted Third Party, and (encrypted) files are sent to you). To run this service, please execute the python script client/FileService.py (`python client/FileService.py`).
+1. Create a yaml file containing your local configuration. The example yaml can be found in `pytaskmanager/_data/client_config_skeleton.yaml`
+2. Fill in the config file the API key, received from the server
+3. Run the client using `ptm client start --config=<path_to_config.yaml>`
+
 
 ## How to build and run an algorithm?
 
