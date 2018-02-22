@@ -91,11 +91,12 @@ class TaskMasterClient(object):
         data = {'api_key': self.config['api_key']}
 
         response = requests.post(url, json=data)
-        response_data = response.json()
 
         if response.status_code != 200:
-            msg = response_data.get('message')
+            msg = response.text
             raise AuthenticationError(msg)
+        
+        response_data = response.json()
 
         self._access_token = response_data['access_token']
         self._refresh_token = response_data['refresh_token']

@@ -23,7 +23,8 @@ from ._schema import *
 
 def setup(api, API_BASE):
     module_name = __name__.split('.')[-1]
-    path = os.path.join(API_BASE, module_name)
+    #path = os.path.join(API_BASE, module_name)
+    path = API_BASE + "/" + module_name
     log.info('Setting up "{}" and subdirectories'.format(path))
     
     api.add_resource(Result,
