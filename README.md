@@ -55,6 +55,6 @@ The registry is based on REST commands. The docker containers are *only* needed 
 To merge results from all sites, and to run the *centralised* part of your analysis, you can develop a script on your own computer. This computer can retrieve the results from the registry, perform its calculations, and (optionally, in an iterative algorithm) post a new request to run an image on the contributing sites. This can also be the same Docker image, using an updated configuration file.
 
 # How to contribute?
-If you have any requests, you can fork this repository, develop the addition/change, and send a pull request. If you have a request for a change, please add it to the issue tracker (see "Issues" in the left navigation bar).
+If you have any requests, you can fork this repository, develop the addition/change, and send a pull request (using the [Gitflow workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow)). If you have a request for a change, please add it to the issue tracker (see "Issues" in the left navigation bar).
 
 This readme and documentation still needs work, as the code for this infrastructure is still work in progress. If you have any question regarding use, please use the issue tracker as well. We might update the readme file accordingly, but also helps us to define where the need for help is.
