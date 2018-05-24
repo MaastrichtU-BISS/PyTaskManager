@@ -93,7 +93,7 @@ while abort == 0:
         dockerParams += "-v " + inputFilePath + ":/input.txt " #mount input file
         dockerParams += "-v " + outputFilePath + ":/output.txt " #mount output file
         dockerParams += "-v " + logFilePath + ":/log.txt " #mount output file
-        dockerParams += "-v " + runIdFolder + ":/temp " #mount runId folder
+        dockerParams += "-v " + runIdFolder + "/:/temp/ " #mount runId folder
         dockerParams += "-e RUN_ID=%s " % str(runId)
         dockerParams += "-e SPARQL_ENDPOINT=%s " % clientData["sparqlEndpoint"]
         dockerParams += "--add-host dockerhost:%s " % clientData["dockerHost"]
