@@ -14,6 +14,7 @@ class DbDao:
         dbCon.execute("CREATE TABLE IF NOT EXISTS task ( "
             "id INTEGER PRIMARY KEY AUTOINCREMENT, "
             "client INT, "
+            "runId CHAR(255), "
             "image CHAR(255), "
             "input TEXT, "
             "FOREIGN KEY (client) REFERENCES client(id) );")
@@ -42,11 +43,11 @@ class DbDao:
         dbCon.commit()
         dbCon.close()
         return id
-    def addTask(self, clientId, image, inputStr):
+    def addTask(self, clientId, runId, image, inputStr):
         dbCon = self.sqlite.connect(self.dbLoc)
         cur = dbCon.cursor()
-        cur.execute("INSERT INTO task (client, image, input) VALUES ( ?, ?, ?)",
-            (str(clientId), image, inputStr))
+        cur.execute("INSERT INTO task (client, runId, image, input) VALUES ( ?, ?, ?, ?)",
+            (str(clientId), str(runId), image, inputStr))
         id = cur.lastrowid
         dbCon.commit()
         dbCon.close()
@@ -55,7 +56,7 @@ class DbDao:
         dbCon = self.sqlite.connect(self.dbLoc)
         dbCon.row_factory = self.sqlite.Row
         cur = dbCon.cursor()
-        cur.execute("SELECT t.id, t.input, t.image FROM task t LEFT OUTER JOIN task_result tr ON t.id = tr.task WHERE t.client = ? AND tr.id IS NULL", str(clientId))
+        cur.execute("SELECT t.id, t.runId, t.input, t.image FROM task t LEFT OUTER JOIN task_result tr ON t.id = tr.task WHERE t.client = ? AND tr.id IS NULL", str(clientId))
         data = cur.fetchall()
         dbCon.close()
         return [dict(ix) for ix in data]

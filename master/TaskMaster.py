@@ -33,7 +33,7 @@ def getClientTasks(clientId):
 @app.route('/client/<int:clientId>/task/add', methods=["POST"])
 def addClientTask(clientId):
     data = request.get_json()
-    taskId = dbDao.addTask(clientId, data["image"], data["inputString"])
+    taskId = dbDao.addTask(clientId, data["runId"], data["image"], data["inputString"])
     data = {
         'success': True,
         'taskId': taskId
