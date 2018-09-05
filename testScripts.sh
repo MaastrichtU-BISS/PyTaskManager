@@ -4,7 +4,7 @@ curl -H "Content-Type: application/json" -X POST -d '{"name": "johan", "email": 
 # http://localhost:5000/client
 
 #add task to client
-curl -H "Content-Type: application/json" -X POST -d '{"image": "hello-world", "inputString": ""}' http://localhost:5000/client/1/task/add
+curl -H "Content-Type: application/json" -X POST -d '{"image": "hello-world", "inputString": "", "runId": "1"}' http://localhost:5000/client/1/task/add
 
 # http://localhost:5000/client/1/task
 

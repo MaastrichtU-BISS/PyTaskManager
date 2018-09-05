@@ -1,0 +1,15 @@
+version: "2"
+services:
+  station_platform:
+    image: jvsoest/pytaskmanager
+    volumes:
+      - //var/run/docker.sock:/var/run/docker.sock
+    links:
+      - graphdb:sparql
+    ports:
+      - 5000:5000
+      - 5001:5001
+  graphdb:
+    image: jvsoest/graphdb-free:fairstation
+    ports: 
+      - "7200:7200"
