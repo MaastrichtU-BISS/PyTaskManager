@@ -105,7 +105,7 @@ while abort == 0:
         dockerParams += "-v " + logFilePath + ":/log.txt " #mount output file
         dockerParams += "-v " + runIdFolder + "/:/temp/ " #mount runId folder
         if(networkId != ""):
-            dockerParams += "--networks %s " % networkId #link to the correct docker network
+            dockerParams += "--network %s " % networkId #link to the correct docker network
         dockerParams += "-e RUN_ID=%s " % str(runId)
         dockerParams += "-e SPARQL_ENDPOINT=%s " % clientData["sparqlEndpoint"]
         dockerParams += "--add-host dockerhost:%s " % socket.gethostbyname(socket.gethostname())
