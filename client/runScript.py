@@ -2,6 +2,7 @@ import json
 import requests
 import time
 import os
+import socket
 import subprocess
 
 # connect to service
@@ -89,14 +90,29 @@ while abort == 0:
         #pulling the image for updates or download
         subprocess.Popen("docker pull " + image, shell=True)
 
+        p = subprocess.Popen("docker inspect $(hostname)", stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        out, err = p.communicate()
+        networkId = ""
+        if(len(err)==0):
+            dockerContainerInfo = json.loads(out.decode("utf-8"))
+            networks = dockerContainerInfo[0]["NetworkSettings"]["Networks"]
+            for networkName in networks:
+                networkId = networks[networkName]["NetworkID"]
+
         dockerParams = "--rm " #container should be removed after execution
         dockerParams += "-v " + inputFilePath + ":/input.txt " #mount input file
         dockerParams += "-v " + outputFilePath + ":/output.txt " #mount output file
         dockerParams += "-v " + logFilePath + ":/log.txt " #mount output file
         dockerParams += "-v " + runIdFolder + "/:/temp/ " #mount runId folder
+        if(networkId != ""):
+            dockerParams += "--networks %s " % networkId #link to the correct docker network
         dockerParams += "-e RUN_ID=%s " % str(runId)
         dockerParams += "-e SPARQL_ENDPOINT=%s " % clientData["sparqlEndpoint"]
-        dockerParams += "--add-host dockerhost:%s " % clientData["dockerHost"]
+        dockerParams += "--add-host dockerhost:%s " % socket.gethostbyname(socket.gethostname())
+        try:
+            dockerParams += "--add-host sparql:%s " % socket.gethostbyname("sparql")
+        except socket.error:
+            print("warning: hostname 'sparql' does not exist")
 
         #create the command line execution line
         dockerExecLine = "docker run  " + dockerParams + image

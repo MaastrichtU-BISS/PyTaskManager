@@ -1,1 +1,1 @@
-{"name": "Johan THUNDER test", "institute": "MAASTRO Clinic", "country": "Netherlands", "interval": 5, "email": "johan.vansoest@maastro.nl", "masterUrl": "http://home.johanvansoest.nl:5000", "sparqlEndpoint": "http://dockerhost:7200/repositories/data", "dockerHost": "172.17.0.1"}
+{"name": "TEST endpoint", "institute": "TEST", "country": "Netherlands", "interval": 5, "email": "no-reply@test.tld", "masterUrl": "http://localhost:5000", "sparqlEndpoint": "http://sparql:7200/repositories/data"}
