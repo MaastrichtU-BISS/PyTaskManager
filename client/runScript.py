@@ -4,6 +4,7 @@ import time
 import os
 import socket
 import subprocess
+import shutil
 
 # connect to service
 headerData = {
@@ -100,12 +101,21 @@ while abort == 0:
                 networkId = networks[networkName]["NetworkID"]
 
         dockerParams = "--rm " #container should be removed after execution
-        dockerParams += "-v " + inputFilePath + ":/input.txt " #mount input file
-        dockerParams += "-v " + outputFilePath + ":/output.txt " #mount output file
-        dockerParams += "-v " + logFilePath + ":/log.txt " #mount output file
-        dockerParams += "-v " + runIdFolder + "/:/temp/ " #mount runId folder
+        
         if(networkId != ""):
             dockerParams += "--network %s " % networkId #link to the correct docker network
+            shutil.copyfile(inputFilePath, "/ioData/input.txt")
+            shutil.copyfile(outputFilePath, "/ioData/output.txt")
+            shutil.copyfile(logFilePath, "/ioData/log.txt")
+            shutil.rmtree('/ioData/temp', ignore_errors=True)
+            os.mkdir("/ioData/temp")
+            dockerParams += "-v ioData:/ioData/ " #mount volume (which is also mounted to this container)
+        else:
+            dockerParams += "-v " + inputFilePath + ":/ioData/input.txt " #mount input file
+            dockerParams += "-v " + outputFilePath + ":/ioData/output.txt " #mount output file
+            dockerParams += "-v " + logFilePath + ":/ioData/log.txt " #mount output file
+            dockerParams += "-v " + runIdFolder + "/:ioData/temp/ " #mount runId folder
+        
         dockerParams += "-e RUN_ID=%s " % str(runId)
         dockerParams += "-e SPARQL_ENDPOINT=%s " % clientData["sparqlEndpoint"]
         dockerParams += "--add-host dockerhost:%s " % socket.gethostbyname(socket.gethostname())
@@ -119,7 +129,13 @@ while abort == 0:
         print("running: " + dockerExecLine)
         p = subprocess.Popen(dockerExecLine, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         out, err = p.communicate()
-        log = out.decode("utf-8")  + "\r\n" + err.decode("utf-8") 
+        log = out.decode("utf-8")  + "\r\n" + err.decode("utf-8")
+
+        if(networkId != ""):
+            shutil.copyfile("/ioData/output.txt", inputFilePath)
+            shutil.copyfile("/ioData/log.txt", logFilePath)
+            shutil.rmtree(runIdFolder)
+            shutil.move("/ioData/temp/", runIdFolder)
 
         file = open(outputFilePath, 'r')
         responseText = file.read()
