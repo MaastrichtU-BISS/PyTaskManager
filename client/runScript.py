@@ -95,6 +95,7 @@ while abort == 0:
         dockerParams += "-v " + logFilePath + ":/log.txt " #mount output file
         dockerParams += "-v " + runIdFolder + "/:/temp/ " #mount runId folder
         dockerParams += "-e RUN_ID=%s " % str(runId)
+        dockerParams += "-e SPARQL_ENDPOINT=%s " % clientData["endpointUrl"]
         dockerParams += "-e endpointUrl=%s " % clientData["endpointUrl"]
         dockerParams += "-e endpointType=%s " % clientData["endpointType"]
         dockerParams += "-e endpointToken=%s " % clientData["endpointToken"]
