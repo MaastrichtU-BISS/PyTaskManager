@@ -26,14 +26,16 @@ class DbDao:
             "FOREIGN KEY(task) REFERENCES task(id) );" )
         dbCon.commit()
         dbCon.close()
-    def getClients(self):
+    def selectQuery(self, query, myVars=None):
         dbCon = self.sqlite.connect(self.dbLoc)
         dbCon.row_factory = self.sqlite.Row
         cur = dbCon.cursor()
-        cur.execute("SELECT * FROM client")
+        cur.execute(query=query, vars=myVars)
         data = cur.fetchall()
         dbCon.close()
         return [dict(ix) for ix in data]
+    def getClients(self):
+        return self.selectQuery("SELECT * FROM client")
     def addClient(self,name,email,institute,country,ip):
         dbCon = self.sqlite.connect(self.dbLoc)
         cur = dbCon.cursor()
@@ -53,13 +55,7 @@ class DbDao:
         dbCon.close()
         return id
     def getClientOpenTasks(self,clientId):
-        dbCon = self.sqlite.connect(self.dbLoc)
-        dbCon.row_factory = self.sqlite.Row
-        cur = dbCon.cursor()
-        cur.execute("SELECT t.id, t.runId, t.input, t.image FROM task t LEFT OUTER JOIN task_result tr ON t.id = tr.task WHERE t.client = ? AND tr.id IS NULL", str(clientId))
-        data = cur.fetchall()
-        dbCon.close()
-        return [dict(ix) for ix in data]
+        return self.selectQuery("SELECT t.id, t.runId, t.input, t.image FROM task t LEFT OUTER JOIN task_result tr ON t.id = tr.task WHERE t.client = ? AND tr.id IS NULL", str(clientId))
     def addTaskResult(self,taskId,response,log):
         dbCon = self.sqlite.connect(self.dbLoc)
         cur = dbCon.cursor()
@@ -70,13 +66,7 @@ class DbDao:
         dbCon.close()
         return id
     def getTaskResult(self, taskId):
-        dbCon = self.sqlite.connect(self.dbLoc)
-        dbCon.row_factory = self.sqlite.Row
-        cur = dbCon.cursor()
-        cur.execute("SELECT * FROM task_result WHERE task = %d" % taskId)
-        data = cur.fetchall()
-        dbCon.close()
-        return [dict(ix) for ix in data]
+        return self.selectQuery("SELECT * FROM task_result WHERE task = %d" % taskId)
     def setClientTimestamp(self, clientId):
         dbCon = self.sqlite.connect(self.dbLoc)
         cur = dbCon.cursor()
