@@ -30,7 +30,7 @@ class DbDao:
         dbCon = self.sqlite.connect(self.dbLoc)
         dbCon.row_factory = self.sqlite.Row
         cur = dbCon.cursor()
-        cur.execute(query=query, vars=myVars)
+        cur.execute(query, myVars)
         data = cur.fetchall()
         dbCon.close()
         return [dict(ix) for ix in data]
@@ -66,7 +66,7 @@ class DbDao:
         dbCon.close()
         return id
     def getTaskResult(self, taskId):
-        return self.selectQuery("SELECT * FROM task_result WHERE task = %d" % taskId)
+        return self.selectQuery("SELECT * FROM task_result WHERE task = ?", str(taskId))
     def setClientTimestamp(self, clientId):
         dbCon = self.sqlite.connect(self.dbLoc)
         cur = dbCon.cursor()

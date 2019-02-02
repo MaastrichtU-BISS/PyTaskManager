@@ -3,3 +3,4 @@
 **/*.sqlite
 client/task*
 client/storage*
+env/
