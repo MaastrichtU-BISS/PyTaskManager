@@ -34,43 +34,28 @@ class DbDao:
         data = cur.fetchall()
         dbCon.close()
         return [dict(ix) for ix in data]
+    def modifyQuery(self, query, myVars=None):
+        dbCon = self.sqlite.connect(self.dbLoc)
+        cur = dbCon.cursor()
+        cur.execute(query, myVars)
+        id = cur.lastrowid
+        dbCon.commit()
+        dbCon.close()
+        return id
     def getClients(self):
         return self.selectQuery("SELECT * FROM client")
     def addClient(self,name,email,institute,country,ip):
-        dbCon = self.sqlite.connect(self.dbLoc)
-        cur = dbCon.cursor()
-        cur.execute("INSERT INTO client (name, email, institute, country, ip) VALUES ( ?, ?, ?, ?, ?)",
+        return self.modifyQuery("INSERT INTO client (name, email, institute, country, ip) VALUES ( ?, ?, ?, ?, ?)",
             (name, email, institute, country, ip))
-        id = cur.lastrowid
-        dbCon.commit()
-        dbCon.close()
-        return id
     def addTask(self, clientId, runId, image, inputStr):
-        dbCon = self.sqlite.connect(self.dbLoc)
-        cur = dbCon.cursor()
-        cur.execute("INSERT INTO task (client, runId, image, input) VALUES ( ?, ?, ?, ?)",
+        return self.modifyQuery("INSERT INTO task (client, runId, image, input) VALUES ( ?, ?, ?, ?)",
             (str(clientId), str(runId), image, inputStr))
-        id = cur.lastrowid
-        dbCon.commit()
-        dbCon.close()
-        return id
     def getClientOpenTasks(self,clientId):
         return self.selectQuery("SELECT t.id, t.runId, t.input, t.image FROM task t LEFT OUTER JOIN task_result tr ON t.id = tr.task WHERE t.client = ? AND tr.id IS NULL", str(clientId))
     def addTaskResult(self,taskId,response,log):
-        dbCon = self.sqlite.connect(self.dbLoc)
-        cur = dbCon.cursor()
-        cur.execute("INSERT INTO task_result (task, response, log) VALUES ( ?, ?, ?)",
+        return self.modifyQuery("INSERT INTO task_result (task, response, log) VALUES ( ?, ?, ?)",
             (str(taskId), response, log))
-        id = cur.lastrowid
-        dbCon.commit()
-        dbCon.close()
-        return id
     def getTaskResult(self, taskId):
         return self.selectQuery("SELECT * FROM task_result WHERE task = ?", str(taskId))
     def setClientTimestamp(self, clientId):
-        dbCon = self.sqlite.connect(self.dbLoc)
-        cur = dbCon.cursor()
-        cur.execute("UPDATE client SET last_seen = DATETIME('now') WHERE id = ?", str(clientId))
-        dbCon.commit()
-        dbCon.close()
-        return id
+        return self.modifyQuery("UPDATE client SET last_seen = DATETIME('now') WHERE id = ?", str(clientId))
