@@ -1,41 +1,42 @@
 class DbDao:
-    sqlite = __import__('sqlite3')
+    dbLib = __import__('psycopg2')
     def __init__(self):
-        self.dbLoc = 'db.sqlite'
-        dbCon = self.sqlite.connect(self.dbLoc)
-        dbCon.execute("CREATE TABLE IF NOT EXISTS client ( "
-            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-            "name CHAR(255), "
-            "email CHAR(255), "
-            "institute CHAR(255), "
-            "country CHAR(255), "
-            "ip CHAR(255),"
-            "last_seen DATETIME );")
-        dbCon.execute("CREATE TABLE IF NOT EXISTS task ( "
-            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-            "client INT, "
-            "runId CHAR(255), "
-            "image CHAR(255), "
-            "input TEXT, "
+        self.dbLoc = 'postgresql://postgres:ppdli@localhost:5432/ptm'
+        dbCon = self.dbLib.connect(self.dbLoc)
+        cur = dbCon.cursor()
+        cur.execute("CREATE TABLE IF NOT EXISTS client ( "
+            "id serial PRIMARY KEY, "
+            "name varchar(255), "
+            "email varchar(255), "
+            "institute varchar(255), "
+            "country varchar(255), "
+            "ip varchar(255),"
+            "last_seen timestamp );")
+        cur.execute("CREATE TABLE IF NOT EXISTS task ( "
+            "id serial PRIMARY KEY, "
+            "client integer, "
+            "runId varchar(255), "
+            "image varchar(255), "
+            "input text, "
             "FOREIGN KEY (client) REFERENCES client(id) );")
-        dbCon.execute("CREATE TABLE IF NOT EXISTS task_result ( "
-            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-            "task INTEGER, "
-            "response TEXT, "
-            "log TEXT, "
+        cur.execute("CREATE TABLE IF NOT EXISTS task_result ( "
+            "id serial PRIMARY KEY, "
+            "task integer, "
+            "response text, "
+            "log text, "
             "FOREIGN KEY(task) REFERENCES task(id) );" )
         dbCon.commit()
         dbCon.close()
     def selectQuery(self, query, myVars=None):
-        dbCon = self.sqlite.connect(self.dbLoc)
-        dbCon.row_factory = self.sqlite.Row
+        dbCon = self.dbLib.connect(self.dbLoc)
+        dbCon.row_factory = self.dbLib.Row
         cur = dbCon.cursor()
         cur.execute(query, myVars)
         data = cur.fetchall()
         dbCon.close()
         return [dict(ix) for ix in data]
     def modifyQuery(self, query, myVars=None):
-        dbCon = self.sqlite.connect(self.dbLoc)
+        dbCon = self.dbLib.connect(self.dbLoc)
         cur = dbCon.cursor()
         cur.execute(query, myVars)
         id = cur.lastrowid
