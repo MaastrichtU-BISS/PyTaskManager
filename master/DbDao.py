@@ -29,12 +29,21 @@ class DbDao:
         dbCon.close()
     def selectQuery(self, query, myVars=None):
         dbCon = self.dbLib.connect(self.dbLoc)
-        dbCon.row_factory = self.dbLib.Row
         cur = dbCon.cursor()
         cur.execute(query, myVars)
         data = cur.fetchall()
         dbCon.close()
-        return [dict(ix) for ix in data]
+        columns = [ ]
+        for column in cur.description:
+            columns.append(column.name)
+        print(columns)
+        myData = [ ]
+        for row in data:
+            myRow = dict()
+            for i in range(len(columns)):
+                myRow[columns[i]] = row[i]
+            myData.append(myRow)
+        return myData
     def modifyQuery(self, query, myVars=None):
         dbCon = self.dbLib.connect(self.dbLoc)
         cur = dbCon.cursor()
@@ -44,19 +53,19 @@ class DbDao:
         dbCon.close()
         return id
     def getClients(self):
-        return self.selectQuery("SELECT * FROM client")
+        results = self.selectQuery("SELECT * FROM client")
+        for result in results:
+            result["last_seen"] = result["last_seen"].isoformat()
+        return results
     def addClient(self,name,email,institute,country,ip):
-        return self.modifyQuery("INSERT INTO client (name, email, institute, country, ip) VALUES ( ?, ?, ?, ?, ?)",
-            (name, email, institute, country, ip))
+        return self.modifyQuery("INSERT INTO client (name, email, institute, country, ip) VALUES ( '%s', '%s', '%s', '%s', '%s')" % (name, email, institute, country, ip))
     def addTask(self, clientId, runId, image, inputStr):
-        return self.modifyQuery("INSERT INTO task (client, runId, image, input) VALUES ( ?, ?, ?, ?)",
-            (str(clientId), str(runId), image, inputStr))
+        return self.modifyQuery("INSERT INTO task (client, runId, image, input) VALUES ( %s, %s, '%s', '%s')" % (clientId, runId, image, inputStr))
     def getClientOpenTasks(self,clientId):
-        return self.selectQuery("SELECT t.id, t.runId, t.input, t.image FROM task t LEFT OUTER JOIN task_result tr ON t.id = tr.task WHERE t.client = ? AND tr.id IS NULL", str(clientId))
+        return self.selectQuery("SELECT t.id, t.runId, t.input, t.image FROM task t LEFT OUTER JOIN task_result tr ON t.id = tr.task WHERE t.client = %s AND tr.id IS NULL" % (clientId))
     def addTaskResult(self,taskId,response,log):
-        return self.modifyQuery("INSERT INTO task_result (task, response, log) VALUES ( ?, ?, ?)",
-            (str(taskId), response, log))
+        return self.modifyQuery("INSERT INTO task_result (task, response, log) VALUES ( %s, '%s', '%s')" % (taskId, response, log))
     def getTaskResult(self, taskId):
-        return self.selectQuery("SELECT * FROM task_result WHERE task = ?", str(taskId))
+        return self.selectQuery("SELECT * FROM task_result WHERE task = %s" % (taskId))
     def setClientTimestamp(self, clientId):
-        return self.modifyQuery("UPDATE client SET last_seen = DATETIME('now') WHERE id = ?", str(clientId))
+        return self.modifyQuery("UPDATE client SET last_seen = now() WHERE id = %s" % (clientId))
