@@ -33,29 +33,35 @@ class DbDao:
         cur.execute(query, myVars)
         data = cur.fetchall()
         dbCon.close()
+
         columns = [ ]
         for column in cur.description:
             columns.append(column.name)
-        print(columns)
+
         myData = [ ]
         for row in data:
             myRow = dict()
             for i in range(len(columns)):
                 myRow[columns[i]] = row[i]
             myData.append(myRow)
+        
         return myData
-    def modifyQuery(self, query, myVars=None):
+    def modifyQuery(self, query):
         dbCon = self.dbLib.connect(self.dbLoc)
         cur = dbCon.cursor()
-        cur.execute(query, myVars)
-        id = cur.lastrowid
+        cur.execute(query + " RETURNING id")
+        id = cur.fetchone()[0]
         dbCon.commit()
         dbCon.close()
         return id
-    def getClients(self):
+    def getClients(self, timeString=True):
         results = self.selectQuery("SELECT * FROM client")
-        for result in results:
-            result["last_seen"] = result["last_seen"].isoformat()
+
+        if timeString:
+            for result in results:
+                if result["last_seen"] is not None:
+                    result["last_seen"] = str(result["last_seen"])
+        
         return results
     def addClient(self,name,email,institute,country,ip):
         return self.modifyQuery("INSERT INTO client (name, email, institute, country, ip) VALUES ( '%s', '%s', '%s', '%s', '%s')" % (name, email, institute, country, ip))
