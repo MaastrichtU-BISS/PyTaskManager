@@ -1,7 +1,7 @@
 class DbDao:
     dbLib = __import__('psycopg2')
-    def __init__(self):
-        self.dbLoc = 'postgresql://postgres:ppdli@localhost:5432/ptm'
+    def __init__(self, connectionString):
+        self.dbLoc = connectionString
         dbCon = self.dbLib.connect(self.dbLoc)
         cur = dbCon.cursor()
         cur.execute("CREATE TABLE IF NOT EXISTS client ( "
