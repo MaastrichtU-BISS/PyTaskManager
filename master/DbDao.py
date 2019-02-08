@@ -2,8 +2,8 @@ class DbDao:
     dbLib = __import__('psycopg2')
     def __init__(self, connectionString):
         self.dbLoc = connectionString
-        dbCon = self.dbLib.connect(self.dbLoc)
-        cur = dbCon.cursor()
+        self.dbCon = self.dbLib.connect(self.dbLoc)
+        cur = self.dbCon.cursor()
         cur.execute("CREATE TABLE IF NOT EXISTS client ( "
             "id serial PRIMARY KEY, "
             "name varchar(255), "
@@ -25,14 +25,13 @@ class DbDao:
             "response text, "
             "log text, "
             "FOREIGN KEY(task) REFERENCES task(id) );" )
-        dbCon.commit()
-        dbCon.close()
+        self.dbCon.commit()
+    def closeConnection(self):
+        self.dbCon.close()
     def selectQuery(self, query, myVars=None):
-        dbCon = self.dbLib.connect(self.dbLoc)
-        cur = dbCon.cursor()
+        cur = self.dbCon.cursor()
         cur.execute(query, myVars)
         data = cur.fetchall()
-        dbCon.close()
 
         columns = [ ]
         for column in cur.description:
@@ -47,12 +46,10 @@ class DbDao:
         
         return myData
     def modifyQuery(self, query):
-        dbCon = self.dbLib.connect(self.dbLoc)
-        cur = dbCon.cursor()
+        cur = self.dbCon.cursor()
         cur.execute(query + " RETURNING id")
         id = cur.fetchone()[0]
-        dbCon.commit()
-        dbCon.close()
+        self.dbCon.commit()
         return id
     def getClients(self, timeString=True):
         results = self.selectQuery("SELECT * FROM client")

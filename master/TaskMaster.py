@@ -1,6 +1,8 @@
 from flask import Flask, Response, request
 import json
 from DbDao import DbDao
+import signal
+import sys
 
 # Init configuration file
 configFile = open("config.json")
@@ -9,6 +11,12 @@ configFile.close()
 
 app = Flask('TaskMaster')
 dbDao = DbDao(config["connectionString"])
+
+def signal_handler(sig, frame):
+    print("closing application and db connection")
+    dbDao.closeConnection()
+    sys.exit(0)
+signal.signal(signal.SIGINT, signal_handler)
 
 @app.route('/')
 def index():
