@@ -2,8 +2,13 @@ from flask import Flask, Response, request
 import json
 from DbDao import DbDao
 
+# Init configuration file
+configFile = open("config.json")
+config = json.load(configFile)
+configFile.close()
+
 app = Flask('TaskMaster')
-dbDao = DbDao()
+dbDao = DbDao(config["connectionString"])
 
 @app.route('/')
 def index():

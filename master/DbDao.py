@@ -1,86 +1,77 @@
 class DbDao:
-    sqlite = __import__('sqlite3')
-    def __init__(self):
-        self.dbLoc = 'db.sqlite'
-        dbCon = self.sqlite.connect(self.dbLoc)
-        dbCon.execute("CREATE TABLE IF NOT EXISTS client ( "
-            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-            "name CHAR(255), "
-            "email CHAR(255), "
-            "institute CHAR(255), "
-            "country CHAR(255), "
-            "ip CHAR(255),"
-            "last_seen DATETIME );")
-        dbCon.execute("CREATE TABLE IF NOT EXISTS task ( "
-            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-            "client INT, "
-            "runId CHAR(255), "
-            "image CHAR(255), "
-            "input TEXT, "
+    dbLib = __import__('psycopg2')
+    def __init__(self, connectionString):
+        self.dbLoc = connectionString
+        dbCon = self.dbLib.connect(self.dbLoc)
+        cur = dbCon.cursor()
+        cur.execute("CREATE TABLE IF NOT EXISTS client ( "
+            "id serial PRIMARY KEY, "
+            "name varchar(255), "
+            "email varchar(255), "
+            "institute varchar(255), "
+            "country varchar(255), "
+            "ip varchar(255),"
+            "last_seen timestamp );")
+        cur.execute("CREATE TABLE IF NOT EXISTS task ( "
+            "id serial PRIMARY KEY, "
+            "client integer, "
+            "runId varchar(255), "
+            "image varchar(255), "
+            "input text, "
             "FOREIGN KEY (client) REFERENCES client(id) );")
-        dbCon.execute("CREATE TABLE IF NOT EXISTS task_result ( "
-            "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-            "task INTEGER, "
-            "response TEXT, "
-            "log TEXT, "
+        cur.execute("CREATE TABLE IF NOT EXISTS task_result ( "
+            "id serial PRIMARY KEY, "
+            "task integer, "
+            "response text, "
+            "log text, "
             "FOREIGN KEY(task) REFERENCES task(id) );" )
         dbCon.commit()
         dbCon.close()
-    def getClients(self):
-        dbCon = self.sqlite.connect(self.dbLoc)
-        dbCon.row_factory = self.sqlite.Row
+    def selectQuery(self, query, myVars=None):
+        dbCon = self.dbLib.connect(self.dbLoc)
         cur = dbCon.cursor()
-        cur.execute("SELECT * FROM client")
+        cur.execute(query, myVars)
         data = cur.fetchall()
         dbCon.close()
-        return [dict(ix) for ix in data]
+
+        columns = [ ]
+        for column in cur.description:
+            columns.append(column.name)
+
+        myData = [ ]
+        for row in data:
+            myRow = dict()
+            for i in range(len(columns)):
+                myRow[columns[i]] = row[i]
+            myData.append(myRow)
+        
+        return myData
+    def modifyQuery(self, query):
+        dbCon = self.dbLib.connect(self.dbLoc)
+        cur = dbCon.cursor()
+        cur.execute(query + " RETURNING id")
+        id = cur.fetchone()[0]
+        dbCon.commit()
+        dbCon.close()
+        return id
+    def getClients(self, timeString=True):
+        results = self.selectQuery("SELECT * FROM client")
+
+        if timeString:
+            for result in results:
+                if result["last_seen"] is not None:
+                    result["last_seen"] = str(result["last_seen"])
+        
+        return results
     def addClient(self,name,email,institute,country,ip):
-        dbCon = self.sqlite.connect(self.dbLoc)
-        cur = dbCon.cursor()
-        cur.execute("INSERT INTO client (name, email, institute, country, ip) VALUES ( ?, ?, ?, ?, ?)",
-            (name, email, institute, country, ip))
-        id = cur.lastrowid
-        dbCon.commit()
-        dbCon.close()
-        return id
+        return self.modifyQuery("INSERT INTO client (name, email, institute, country, ip) VALUES ( '%s', '%s', '%s', '%s', '%s')" % (name, email, institute, country, ip))
     def addTask(self, clientId, runId, image, inputStr):
-        dbCon = self.sqlite.connect(self.dbLoc)
-        cur = dbCon.cursor()
-        cur.execute("INSERT INTO task (client, runId, image, input) VALUES ( ?, ?, ?, ?)",
-            (str(clientId), str(runId), image, inputStr))
-        id = cur.lastrowid
-        dbCon.commit()
-        dbCon.close()
-        return id
+        return self.modifyQuery("INSERT INTO task (client, runId, image, input) VALUES ( %s, %s, '%s', '%s')" % (clientId, runId, image, inputStr))
     def getClientOpenTasks(self,clientId):
-        dbCon = self.sqlite.connect(self.dbLoc)
-        dbCon.row_factory = self.sqlite.Row
-        cur = dbCon.cursor()
-        cur.execute("SELECT t.id, t.runId, t.input, t.image FROM task t LEFT OUTER JOIN task_result tr ON t.id = tr.task WHERE t.client = ? AND tr.id IS NULL", str(clientId))
-        data = cur.fetchall()
-        dbCon.close()
-        return [dict(ix) for ix in data]
+        return self.selectQuery("SELECT t.id, t.runId, t.input, t.image FROM task t LEFT OUTER JOIN task_result tr ON t.id = tr.task WHERE t.client = %s AND tr.id IS NULL" % (clientId))
     def addTaskResult(self,taskId,response,log):
-        dbCon = self.sqlite.connect(self.dbLoc)
-        cur = dbCon.cursor()
-        cur.execute("INSERT INTO task_result (task, response, log) VALUES ( ?, ?, ?)",
-            (str(taskId), response, log))
-        id = cur.lastrowid
-        dbCon.commit()
-        dbCon.close()
-        return id
+        return self.modifyQuery("INSERT INTO task_result (task, response, log) VALUES ( %s, '%s', '%s')" % (taskId, response, log))
     def getTaskResult(self, taskId):
-        dbCon = self.sqlite.connect(self.dbLoc)
-        dbCon.row_factory = self.sqlite.Row
-        cur = dbCon.cursor()
-        cur.execute("SELECT * FROM task_result WHERE task = %d" % taskId)
-        data = cur.fetchall()
-        dbCon.close()
-        return [dict(ix) for ix in data]
+        return self.selectQuery("SELECT * FROM task_result WHERE task = %s" % (taskId))
     def setClientTimestamp(self, clientId):
-        dbCon = self.sqlite.connect(self.dbLoc)
-        cur = dbCon.cursor()
-        cur.execute("UPDATE client SET last_seen = DATETIME('now') WHERE id = ?", str(clientId))
-        dbCon.commit()
-        dbCon.close()
-        return id
+        return self.modifyQuery("UPDATE client SET last_seen = now() WHERE id = %s" % (clientId))
