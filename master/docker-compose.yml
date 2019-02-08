@@ -4,6 +4,7 @@ services:
     image: postgres
     volumes:
       - ./create.sql:/docker-entrypoint-initdb.d/create.sql
+      - ./postgres-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=ppdli
   ptmMaster:
