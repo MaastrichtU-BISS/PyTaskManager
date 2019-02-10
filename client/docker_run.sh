@@ -1,4 +1,4 @@
-cd /PyTaskManager-master/client
+cd /ptm_client
 python FileService.py &
 
 sleep 5
