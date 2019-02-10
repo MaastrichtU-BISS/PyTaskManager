@@ -17,7 +17,6 @@ RUN pip install requests flask
 COPY docker_run.sh /run.sh
 
 # Make these ports available to the outside world
-EXPOSE 5000
 EXPOSE 5001
 
 # Set run script as default locations
