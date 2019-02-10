@@ -1,0 +1,10 @@
+version: "2"
+services:
+  ptm_client:
+    image: jvsoest/ptm_client
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./config.json:/ptm_client/config.json
+      - ioData:/ioData
+volumes:
+  ioData:
