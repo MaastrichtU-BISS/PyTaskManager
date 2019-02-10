@@ -3,3 +3,5 @@
 **/*.sqlite
 client/task*
 client/storage*
+**/env*
+master/postgres-data/
