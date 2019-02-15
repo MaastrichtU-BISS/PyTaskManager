@@ -52,7 +52,7 @@ class DbDao:
         self.dbCon.commit()
         return id
     def getClients(self, timeString=True):
-        results = self.selectQuery("SELECT * FROM client")
+        results = self.selectQuery("SELECT * FROM client ORDER BY id")
 
         if timeString:
             for result in results:
