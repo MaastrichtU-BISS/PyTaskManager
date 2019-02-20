@@ -104,17 +104,35 @@ while abort == 0:
         
         if(networkId != ""):
             dockerParams += "--network %s " % networkId #link to the correct docker network
-            shutil.copyfile(inputFilePath, "/ioData/input.txt")
-            shutil.copyfile(outputFilePath, "/ioData/output.txt")
-            shutil.copyfile(logFilePath, "/ioData/log.txt")
-            shutil.rmtree('/ioData/temp', ignore_errors=True)
-            os.mkdir("/ioData/temp")
-            dockerParams += "-v ioData:/ioData/ " #mount volume (which is also mounted to this container)
+            
+            ptmInput= os.environ.get("PTM_INPUT")
+            shutil.copyfile(inputFilePath, "/" + ptmInput + "/input.txt")
+            
+            ptmOutput = os.environ.get("PTM_OUTPUT")
+            shutil.copyfile(outputFilePath, "/" + ptmOutput + "/output.txt")
+            
+            ptmLogs = os.environ.get("PTM_LOGS") 
+            shutil.copyfile(logFilePath, "/" + ptmLogs + "/log.txt")
+            
+            ptmTemp = os.environ.get("PTM_TEMP") 
+            shutil.rmtree("/" + ptmTemp + "/*", ignore_errors=True)
+
+            project = os.environ.get("PTM_PROJECT")
+            dockerParams += "-v " + project + "_" + ptmInput + ":/input/ "
+            dockerParams += "-v " + project + "_" + ptmOutput + ":/output/ "
+            dockerParams += "-v " + project + "_" + ptmLogs + ":/logs/ "
+            dockerParams += "-v " + project + "_" + ptmTemp + ":/tmp/ "
+
+            dockerParams += "-e INPUT_FOLDER:/" + ptmInput + "/input.txt "
+            dockerParams += "-e OUTPUT_FOLDER:/" + ptmOutput + "/output.txt "
+            dockerParams += "-e LOGS_FILE:/" + ptmLogs + "/log.txt "
+            dockerParams += "-e TEMP_FOLDER:/" + ptmTemp + "/ "
+
         else:
-            dockerParams += "-v " + inputFilePath + ":/ioData/input.txt " #mount input file
-            dockerParams += "-v " + outputFilePath + ":/ioData/output.txt " #mount output file
-            dockerParams += "-v " + logFilePath + ":/ioData/log.txt " #mount output file
-            dockerParams += "-v " + runIdFolder + "/:ioData/temp/ " #mount runId folder
+            dockerParams += "-v " + inputFilePath + ":/input/input.txt " #mount input file
+            dockerParams += "-v " + outputFilePath + ":/output/output.txt " #mount output file
+            dockerParams += "-v " + logFilePath + ":/logs/log.txt " #mount output file
+            dockerParams += "-v " + runIdFolder + "/:/tmp/ " #mount runId folder
         
         dockerParams += "-e RUN_ID=%s " % str(runId)
         dockerParams += "-e SPARQL_ENDPOINT=%s " % clientData["sparqlEndpoint"]
@@ -132,10 +150,10 @@ while abort == 0:
         log = out.decode("utf-8")  + "\r\n" + err.decode("utf-8")
 
         if(networkId != ""):
-            shutil.copyfile("/ioData/output.txt", inputFilePath)
-            shutil.copyfile("/ioData/log.txt", logFilePath)
+            shutil.copyfile("/" + ptmOutput + "/output.txt", inputFilePath)
+            shutil.copyfile("/" + ptmLogs + "/log.txt", logFilePath)
             shutil.rmtree(runIdFolder)
-            shutil.move("/ioData/temp/", runIdFolder)
+            shutil.copytree("/" + ptmTemp, runIdFolder)
 
         file = open(outputFilePath, 'r')
         responseText = file.read()

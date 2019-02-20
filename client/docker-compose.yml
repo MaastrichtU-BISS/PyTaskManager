@@ -5,6 +5,22 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./config.json:/ptm_client/config.json
-      - ioData:/ioData
+      - input:/input
+      - output:/output
+      - temp:/temp
+      - logs:/logs
+    environment:
+      PTM_PROJECT: "client"
+      PTM_INPUT: "input"
+      PTM_OUTPUT: "output"
+      PTM_TEMP: "temp"
+      PTM_LOGS: "logs"
+  sparql:
+    image: jvsoest/graphdb-free:fairstation
+    ports:
+      - 7200:7200
 volumes:
-  ioData:
+  input:
+  output:
+  temp:
+  logs:
