@@ -65,7 +65,13 @@ class DbDao:
     def addTask(self, clientId, runId, image, inputStr):
         return self.modifyQuery("INSERT INTO task (client, runId, image, input) VALUES ( %s, %s, '%s', '%s')" % (clientId, runId, image, inputStr))
     def getClientOpenTasks(self,clientId):
-        return self.selectQuery("SELECT t.id, t.runId, t.input, t.image FROM task t LEFT OUTER JOIN task_result tr ON t.id = tr.task WHERE t.client = %s AND tr.id IS NULL" % (clientId))
+        results = self.selectQuery("SELECT t.id, t.runId, t.input, t.image FROM task t LEFT OUTER JOIN task_result tr ON t.id = tr.task WHERE t.client = %s AND tr.id IS NULL" % (clientId))
+
+        for result in results:
+            result['runId'] = result['runid']
+            del result['runid']
+        
+        return results
     def addTaskResult(self,taskId,response,log):
         return self.modifyQuery("INSERT INTO task_result (task, response, log) VALUES ( %s, '%s', '%s')" % (taskId, response, log))
     def getTaskResult(self, taskId):
