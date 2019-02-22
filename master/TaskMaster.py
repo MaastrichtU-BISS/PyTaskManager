@@ -3,11 +3,14 @@ import json
 from DbDao import DbDao
 import signal
 import sys
+import time
 
 # Init configuration file
 configFile = open("config.json")
 config = json.load(configFile)
 configFile.close()
+
+time.sleep(10)
 
 app = Flask('TaskMaster')
 dbDao = DbDao(config["connectionString"])
@@ -29,12 +32,23 @@ def clientList():
 
 @app.route('/client/add', methods=["POST"])
 def addClient():
-    data = request.get_json()
-    clientId = dbDao.addClient(data["name"], data["email"], data["institute"], data["country"], request.remote_addr)
-    data = {
-        'success': True,
-        'clientId': clientId
-    }
+    try:
+        data = request.get_json()
+    except:
+        return Response(json.dumps({"success": False, 'message': "Could not parse input as JSON"}), mimetype="application/json")
+
+    try:
+        clientId = dbDao.addClient(data["name"], data["email"], data["institute"], data["country"], request.remote_addr)
+        data = {
+            'success': True,
+            'clientId': clientId
+        }
+    except:
+        data = {
+            'success': False,
+            'message': "Could not insert data in database"
+        }
+
     return Response(json.dumps(data), mimetype="application/json")
 
 @app.route('/client/<int:clientId>/task')
@@ -45,12 +59,23 @@ def getClientTasks(clientId):
 
 @app.route('/client/<int:clientId>/task/add', methods=["POST"])
 def addClientTask(clientId):
-    data = request.get_json()
-    taskId = dbDao.addTask(clientId, data["runId"], data["image"], data["inputString"])
-    data = {
-        'success': True,
-        'taskId': taskId
-    }
+    try:
+        data = request.get_json()
+    except:
+        return Response(json.dumps({"success": False, 'message': "Could not parse input as JSON"}), mimetype="application/json")
+
+    try:
+        taskId = dbDao.addTask(clientId, data["runId"], data["image"], data["inputString"])
+        data = {
+            'success': True,
+            'taskId': taskId
+        }
+    except:
+        data = {
+            'success': False,
+            'message': "Could not insert task in database"
+        }
+    
     return Response(json.dumps(data), mimetype="application/json")
 
 @app.route('/client/<int:clientId>/task/<int:taskId>/result')
@@ -71,13 +96,23 @@ def getTaskResultLog(clientId, taskId):
 
 @app.route('/client/<int:clientId>/task/<int:taskId>/result/add', methods=["POST"])
 def addTaskResult(clientId, taskId):
-    data = request.get_json()
-    resultId = dbDao.addTaskResult(taskId, data["response"], data["log"])
-    dbDao.setClientTimestamp(clientId)
-    data = {
-        'success': True,
-        'taskId': resultId
-    }
+    try:
+        data = request.get_json()
+    except:
+        return Response(json.dumps({"success": False, 'message': "Could not parse input as JSON"}), mimetype="application/json")
+    
+    try:
+        resultId = dbDao.addTaskResult(taskId, data["response"], data["log"])
+        dbDao.setClientTimestamp(clientId)
+        data = {
+            'success': True,
+            'taskId': resultId
+        }
+    except:
+        data = {
+            'success': False,
+            'message': "Could not insert task result in database"
+        }
     return Response(json.dumps(data), mimetype="application/json")
 
 app.run(debug=True, host='0.0.0.0', port=5000)
