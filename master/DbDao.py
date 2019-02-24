@@ -45,9 +45,9 @@ class DbDao:
             myData.append(myRow)
         
         return myData
-    def modifyQuery(self, query):
+    def modifyQuery(self, query, values=None):
         cur = self.dbCon.cursor()
-        cur.execute(query + " RETURNING id")
+        cur.execute(query + " RETURNING id", values)
         id = cur.fetchone()[0]
         self.dbCon.commit()
         return id
@@ -61,13 +61,13 @@ class DbDao:
         
         return results
     def addClient(self,name,email,institute,country,ip):
-        return self.modifyQuery("INSERT INTO client (name, email, institute, country, ip) VALUES ( '%s', '%s', '%s', '%s', '%s')" % (name, email, institute, country, ip))
+        return self.modifyQuery("INSERT INTO client (name, email, institute, country, ip) VALUES ( %s, %s, %s, %s, %s)", (name, email, institute, country, ip))
     def addTask(self, clientId, runId, image, inputStr):
-        return self.modifyQuery("INSERT INTO task (client, runId, image, input) VALUES ( %s, %s, '%s', '%s')" % (clientId, runId, image, inputStr))
+        return self.modifyQuery("INSERT INTO task (client, runId, image, input) VALUES ( %s, %s, %s, %s)", (clientId, runId, image, inputStr))
     def getClientOpenTasks(self,clientId):
         return self.selectQuery("SELECT t.id, t.runId, t.input, t.image FROM task t LEFT OUTER JOIN task_result tr ON t.id = tr.task WHERE t.client = %s AND tr.id IS NULL" % (clientId))
     def addTaskResult(self,taskId,response,log):
-        return self.modifyQuery("INSERT INTO task_result (task, response, log) VALUES ( %s, '%s', '%s')" % (taskId, response, log))
+        return self.modifyQuery("INSERT INTO task_result (task, response, log) VALUES ( %s, %s, %s)", (taskId, response, log))
     def getTaskResult(self, taskId):
         return self.selectQuery("SELECT * FROM task_result WHERE task = %s" % (taskId))
     def setClientTimestamp(self, clientId):
