@@ -1,8 +1,8 @@
 import json
-import requests
 import time
 import os
 import subprocess
+from DockerImageImportService import DockerImageImportService
 
 # connect to service
 headerData = {
@@ -14,18 +14,6 @@ configFile = open("config.json")
 clientData = json.load(configFile)
 configFile.close()
 
-if "id" not in clientData:
-    # execute HTTP POST to try and authenticate
-    resp = requests.post(clientData["masterUrl"] + "/client/add", data=json.dumps(clientData), headers=headerData)
-    respObj = json.loads(resp.text)
-    clientId = respObj.get('clientId', '')
-    clientData["id"] = clientId
-    configFile = open("config.json", "w")
-    json.dump(clientData, configFile)
-    configFile.close()
-
-print("Starting with client ID " + str(clientData["id"]))
-
 taskDir = "tasks"
 if not os.path.exists(taskDir):
     os.mkdir(taskDir)
@@ -36,15 +24,36 @@ if not os.path.exists(runIdDir):
 
 abort = 0
 
+diis = DockerImageImportService("myFiles", 5)
+diis.start()
+
+import signal
+import sys
+def signal_handler(sig, frame):
+        diis.stop()
+        sys.exit(0)
+signal.signal(signal.SIGINT, signal_handler)
+
+def readPtmInstructions(rootDir = "myFiles"):
+    tasks = [ ]
+
+    historyDir = rootDir + "_history"
+    if not os.path.exists(historyDir):
+        os.mkdir(historyDir)
+
+    for dirName, subdirList, fileList in os.walk(rootDir):
+        for fname in fileList:
+            if(fname.endswith(".ptmjob")):
+                with open(os.path.join(dirName, fname)) as json_file:  
+                    tasks.append(json.load(json_file))
+                os.rename(os.path.join(dirName, fname), os.path.join(historyDir, fname))
+    return tasks
+
 while abort == 0:
     taskList = list()
 
     # Connect to central host, if fails do nothing
-    try:
-        resp = requests.get(clientData["masterUrl"] + "/client/" + str(clientData["id"]) + "/task")
-        taskList = json.loads(resp.text)
-    except:
-        print("Could not retrieve result from master.")
+    taskList = readPtmInstructions()
 
     # If no task retrieved (or central host down) wait again
     if len(taskList) == 0:
@@ -87,7 +96,7 @@ while abort == 0:
         text_file.close()
 
         #pulling the image for updates or download
-        subprocess.Popen("docker pull " + image, shell=True)
+        #subprocess.Popen("docker pull " + image, shell=True)
 
         dockerParams = "--rm " #container should be removed after execution
         dockerParams += "-v " + inputFilePath + ":/input.txt " #mount input file
@@ -123,11 +132,14 @@ while abort == 0:
         }
 
         print(responseData)
+        file = open(logFilePath, 'w')
+        file.writelines(responseData["log"])
+        file.close()
 
         # execute HTTP POST to send back result (response)
-        resp = requests.post(
-            clientData["masterUrl"] + "/client/" + str(clientData["id"]) + "/task/" + str(taskId) + "/result/add",
-            data=json.dumps(responseData), headers=headerData)
-        respObjResult = json.loads(resp.text)
-        print("resultId" + str(respObjResult["taskId"]))
-        iTask += 1
+        # resp = requests.post(
+        #     clientData["masterUrl"] + "/client/" + str(clientData["id"]) + "/task/" + str(taskId) + "/result/add",
+        #     data=json.dumps(responseData), headers=headerData)
+        # respObjResult = json.loads(resp.text)
+        # print("resultId" + str(respObjResult["taskId"]))
+        iTask += 1     
