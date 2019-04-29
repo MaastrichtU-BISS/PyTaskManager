@@ -5,3 +5,5 @@ client/task*
 client/storage*
 **/env*
 master/postgres-data/
+client/myFiles*
+client/runIds
