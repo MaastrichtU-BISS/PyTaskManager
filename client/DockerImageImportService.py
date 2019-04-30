@@ -16,6 +16,9 @@ class DockerImageImportService:
     def stop(self):
         if self.__myThread.isAlive():
             self.__stopSignal = True
+        while(self.__myThread.isAlive()):
+            time.sleep(1)
+        self.__myThread.join()
     
     def __execute__(self):
         while not self.__stopSignal:
