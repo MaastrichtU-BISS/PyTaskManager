@@ -25,9 +25,10 @@ jsd = JobServiceDocker("tasks", "runIds", True, clientData["endpointUrl"], clien
 import signal
 import sys
 def signal_handler(sig, frame):
-    print("stop!")
+    print("Stopping, active threads: %s" % threading.activeCount())
     diis.stop()
     jsd.stop()
+    print("Threads succesfully stopped (count: %s), terminating application" % threading.activeCount())
 signal.signal(signal.SIGINT, signal_handler)
 
 diis.start()
