@@ -20,14 +20,7 @@ configFile.close()
 
 diis = DockerImageImportService("myFiles", 5)
 
-inputOutputOptions = {
-    "inputMethod": "folder",
-    "inputLocation": "myFiles",
-    "outputMethod": "folder",
-    "outputLocation": "myFilesOut",
-    "filesToOutput": ["logs", "output"]
-}
-jsd = JobServiceDocker("tasks", "runIds", True, clientData["endpointUrl"], clientData["endpointType"], clientData["endpointToken"], clientData["dockerHost"], clientData["interval"], inputOutputOptions)
+jsd = JobServiceDocker("tasks", "runIds", True, clientData["endpointUrl"], clientData["endpointType"], clientData["endpointToken"], clientData["dockerHost"], clientData["interval"], clientData["inputOutputOptions"])
 
 import signal
 import sys

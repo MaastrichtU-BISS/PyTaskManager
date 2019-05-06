@@ -1,1 +1,20 @@
-{"name": "My Name", "institute": "My Institute", "country": "International", "interval": 5, "endpointUrl": "http://dockerhost:7200/repositories/data", "endpointType": "SPARQL", "masterUrl": "http://pbdw.personalhealthtrain.net", "dockerHost": "172.17.0.1", "email": "my@organization.tld", "endpointToken": ""}
+{
+    "name": "My Name",
+    "institute": "My Institute",
+    "country": "International",
+    "interval": 5,
+    "endpointUrl": "http://dockerhost:7200/repositories/data",
+    "endpointType": "SPARQL",
+    "masterUrl": "http://pbdw.personalhealthtrain.net",
+    "dockerHost": "172.17.0.1",
+    "email": "my@organization.tld",
+    "endpointToken": "",
+    "id": 9999,
+    "inputOutputOptions": {
+        "inputMethod": "folder",
+        "inputLocation": "myFiles",
+        "outputMethod": "folder",
+        "outputLocation": "myFilesOut",
+        "filesToOutput": ["logs", "output"]
+    }
+}
