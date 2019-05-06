@@ -27,7 +27,7 @@ inputOutputOptions = {
     "outputLocation": "myFilesOut",
     "filesToOutput": ["logs", "output"]
 }
-jsd = JobServiceDocker("tasks", "runIds", True, "http://dockerhost:7200/repositories/data/sparql", "SPARQL", "", "172.10.0.1", 5, inputOutputOptions)
+jsd = JobServiceDocker("tasks", "runIds", True, clientData["endpointUrl"], clientData["endpointType"], clientData["endpointToken"], clientData["dockerHost"], clientData["interval"], inputOutputOptions)
 
 import signal
 import sys
