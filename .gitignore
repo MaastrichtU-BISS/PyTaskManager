@@ -7,3 +7,4 @@ client/storage*
 master/postgres-data/
 client/myFiles*
 client/runIds
+*.pyc
