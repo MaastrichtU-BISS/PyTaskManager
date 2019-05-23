@@ -85,6 +85,7 @@ class JobServiceDocker:
             if fileType=="logs":
                 shutil.copyfile(taskFolderPaths["logFilePath"], os.path.join(self.__inputOutputInstructions["outputLocation"], "log.txt"))
             if fileType=="output":
+                shutil.copytree(taskFolderPaths["outputFolderPath"], os.path.join(self.__inputOutputInstructions["outputLocation"], "output"))
                 shutil.copyfile(taskFolderPaths["outputFilePath"], os.path.join(self.__inputOutputInstructions["outputLocation"], "output.txt"))
             if fileType=="tmpFolder":
                 targetPath = os.path.join(self.__inputOutputInstructions["outputLocation"], "tmp")
@@ -115,6 +116,9 @@ class JobServiceDocker:
         text_file.write("")
         text_file.close()
 
+        outputFolderPath = os.path.join(taskFolderPath, "output")
+        os.mkdir(outputFolderPath)
+
         logFilePath = os.path.join(taskFolderPath,"log.txt")
         text_file = open(logFilePath, "w")
         text_file.write("")
@@ -123,6 +127,7 @@ class JobServiceDocker:
         return {
             "inputFilePath": inputFilePath,
             "outputFilePath": outputFilePath,
+            "outputFolderPath": outputFolderPath,
             "logFilePath": logFilePath
         }
 
@@ -133,6 +138,7 @@ class JobServiceDocker:
         dockerParams = "--rm " #container should be removed after execution
         dockerParams += "-v " + os.path.abspath(taskFolderPaths['inputFilePath']) + ":/input.txt " #mount input file
         dockerParams += "-v " + os.path.abspath(taskFolderPaths['outputFilePath']) + ":/output.txt " #mount output file
+        dockerParams += "-v " + os.path.abspath(taskFolderPaths['outputFolderPath']) + ":/output " #mount output file
         dockerParams += "-v " + os.path.abspath(taskFolderPaths['logFilePath']) + ":/log.txt " #mount output file
         dockerParams += "-v " + os.path.abspath(tmpFolderPath) + "/:/temp/ " #mount runId folder
         dockerParams += "-e RUN_ID=%s " % str(runId)
