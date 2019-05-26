@@ -18,7 +18,7 @@ configFile = open("config.json")
 clientData = json.load(configFile)
 configFile.close()
 
-diis = DockerImageImportService("myFiles", 5)
+diis = DockerImageImportService(clientData["inputOutputOptions"]["inputLocation"], clientData["interval"])
 
 jsd = JobServiceDocker("tasks", "runIds", True, clientData["endpointUrl"], clientData["endpointType"], clientData["endpointToken"], clientData["dockerHost"], clientData["interval"], clientData["inputOutputOptions"])
 
