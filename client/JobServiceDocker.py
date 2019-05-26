@@ -89,7 +89,8 @@ class JobServiceDocker:
                 shutil.copyfile(taskFolderPaths["outputFilePath"], os.path.join(self.__inputOutputInstructions["outputLocation"], "output.txt"))
             if fileType=="tmpFolder":
                 targetPath = os.path.join(self.__inputOutputInstructions["outputLocation"], "tmp")
-                shutil.rmtree(targetPath)
+                if os.path.exists(targetPath):
+                    shutil.rmtree(targetPath)
                 shutil.copytree(tmpFolderPath, targetPath)
 
 
@@ -117,6 +118,8 @@ class JobServiceDocker:
         text_file.close()
 
         outputFolderPath = os.path.join(taskFolderPath, "output")
+        if os.path.exists(outputFolderPath):
+            os.rmdir(outputFolderPath)
         os.mkdir(outputFolderPath)
 
         logFilePath = os.path.join(taskFolderPath,"log.txt")
