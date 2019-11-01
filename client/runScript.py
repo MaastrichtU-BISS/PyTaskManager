@@ -14,6 +14,19 @@ configFile = open("config.json")
 clientData = json.load(configFile)
 configFile.close()
 
+masterOnline = False
+while not masterOnline:
+    try:
+        resp = requests.get(clientData["masterUrl"])
+        print(resp.status_code)
+        if resp.status_code==200:
+            masterOnline = True
+    except:
+        print("Waiting for %s" % clientData["masterUrl"])
+    
+    if not masterOnline:
+        time.sleep(10)
+
 if "id" not in clientData:
     # execute HTTP POST to try and authenticate
     resp = requests.post(clientData["masterUrl"] + "/client/add", data=json.dumps(clientData), headers=headerData)
