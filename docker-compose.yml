@@ -1,0 +1,32 @@
+version: "2.4"
+services:
+  postgres:
+    image: postgres
+    volumes:
+      - ./master/create.sql:/docker-entrypoint-initdb.d/create.sql
+      #- ./master/postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=ppdli
+  ptmMaster:
+    image: jvsoest/ptm_master
+    volumes:
+      - ./master/config.json:/app/config.json
+    links:
+      - postgres:dbhost
+    ports:
+      - "5000:5000"
+    depends_on:
+      - "postgres"
+  ptmClient:
+    image: jvsoest/ptm_client
+    volumes:
+      - ./client/config.json:/app/config.json
+      - ioData:/input_output
+      - /var/run/docker.sock:/var/run/docker.sock
+    links:
+      - ptmMaster:localmaster
+    depends_on:
+      - "ptmMaster"
+volumes:
+  ioData:
+    name: input_output

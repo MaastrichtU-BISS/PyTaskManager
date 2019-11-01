@@ -14,6 +14,19 @@ configFile = open("config.json")
 clientData = json.load(configFile)
 configFile.close()
 
+masterOnline = False
+while not masterOnline:
+    try:
+        resp = requests.get(clientData["masterUrl"])
+        print(resp.status_code)
+        if resp.status_code==200:
+            masterOnline = True
+    except:
+        print("Waiting for %s" % clientData["masterUrl"])
+    
+    if not masterOnline:
+        time.sleep(10)
+
 if "id" not in clientData:
     # execute HTTP POST to try and authenticate
     resp = requests.post(clientData["masterUrl"] + "/client/add", data=json.dumps(clientData), headers=headerData)
@@ -33,6 +46,12 @@ if not os.path.exists(taskDir):
 runIdDir = "runIds"
 if not os.path.exists(runIdDir):
     os.mkdir(runIdDir)
+
+ioVolumeFolder = clientData["dockerSettings"]["inputOutputFolderPath"]
+ioVolumeName = clientData["dockerSettings"]["inputOutputVolumeName"]
+
+if not os.path.exists(ioVolumeFolder):
+    print("ioVolumeFolder does not exist!")
 
 abort = 0
 
@@ -60,28 +79,18 @@ while abort == 0:
         runId = myTask.get('runId')
         inputText = myTask.get("input")
 
-        #create directory to put files into for this run
-        curFolder = os.path.join(os.getcwd(), taskDir, "task"+str(taskId))
-        if not os.path.exists(curFolder):
-            os.mkdir(curFolder)
-
-        #create directory to stay alive over runs (based on runId)
-        runIdFolder = os.path.join(os.getcwd(), runIdDir, str(runId))
-        if not os.path.exists(runIdFolder):
-            os.mkdir(runIdFolder)
-
         #put the input arguments in a text file
-        inputFilePath = os.path.join(curFolder,"input.txt")
+        inputFilePath = os.path.join(ioVolumeFolder,"input.txt")
         text_file = open(inputFilePath, "w")
         text_file.write(inputText)
         text_file.close()
 
-        outputFilePath = os.path.join(curFolder,"output.txt")
+        outputFilePath = os.path.join(ioVolumeFolder,"output.txt")
         text_file = open(outputFilePath, "w")
         text_file.write("")
         text_file.close()
 
-        logFilePath = os.path.join(curFolder,"log.txt")
+        logFilePath = os.path.join(ioVolumeFolder,"log.txt")
         text_file = open(logFilePath, "w")
         text_file.write("")
         text_file.close()
@@ -89,11 +98,12 @@ while abort == 0:
         #pulling the image for updates or download
         subprocess.Popen("docker pull " + image, shell=True)
 
+        tmpVolume = "tmp_" + str(runId)
+        subprocess.Popen("docker volume create " + tmpVolume, shell=True)
+
         dockerParams = "--rm " #container should be removed after execution
-        dockerParams += "-v " + inputFilePath + ":/input.txt " #mount input file
-        dockerParams += "-v " + outputFilePath + ":/output.txt " #mount output file
-        dockerParams += "-v " + logFilePath + ":/log.txt " #mount output file
-        dockerParams += "-v " + runIdFolder + "/:/temp/ " #mount runId folder
+        dockerParams += "-v " + ioVolumeName + ":/input_output " #mount input file
+        dockerParams += "-v " + tmpVolume + ":/tmp " #mount runId folder
         dockerParams += "-e RUN_ID=%s " % str(runId)
         dockerParams += "-e SPARQL_ENDPOINT=%s " % clientData["endpointUrl"]
         dockerParams += "-e endpointUrl=%s " % clientData["endpointUrl"]
